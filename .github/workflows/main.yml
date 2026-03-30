@@ -1,0 +1,36 @@
+name: Evaluacija
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  grading:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Preuzmi kod od studenta
+        uses: actions/checkout@v4
+        with:
+          path: student-repo # Smesta ga u ovaj folder na serveru
+
+      - name: Preuzmi AI Automatskog asisenta iz privatnog repoa
+        uses: actions/checkout@v4
+        with:
+          repository: Osnove-testiranja-softvera-2025-26/AI-AutoGrader
+          token: ${{ secrets.GRADER_PAT }}
+          path: auto-grader
+
+      - name: Pripremi .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x' 
+
+      - name: Pokreni Asistenta
+        env:
+          GITHUB_TOKEN: ${{ secrets.MODELS_TOKEN }}
+        run: |
+          cd auto-grader
+          # Gadjamo gornji folder "student-repo" (../student-repo)
+          dotnet run --project AssistantApp.csproj -- ../student-repo
